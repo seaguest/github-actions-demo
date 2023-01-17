@@ -1,11 +1,47 @@
-name: CI
-on: push
+name: Build and push release targets
+on:
+  push:
+    tags:
+      - v*
+      - promote-dev-v*
+      - promote-prod-v*
+      - promote-dev-{service_group}-v* # service group: backend/python/dash
+      - promote-prod-{service_group}-v*
 
 jobs:
-  test:
+  set_version:
+    name: Extract and set version
     runs-on: ubuntu-latest
+    outputs:
+      release_version: "${{ steps.set_release_version.outputs.version }}"
+      tag: "${{ steps.set_release_version.outputs.tag }}"
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v1
-    - run: npm install
-    - run: npm test
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set release env
+        id: set_release_version
+        run: |
+          set -eo pipefail
+
+          echo "::group::Output tag"
+          echo "xxxx: ${GITHUB_REF}"
+          tag="${GITHUB_REF#refs/*/}"
+          echo "tag: ${tag}"
+          echo "::set-output name=tag::$tag"
+          echo "::endgroup::"
+
+          echo "::group::Trying to extract version from tag '${tag}'"
+          extracted_version="$(echo ${tag} | grep --perl-regexp '(v\d+\.\d+\.\d+.*)' -o)"
+          echo "extracted version: ${extracted_version}"
+          echo "::endgroup::"
+
+          echo "::group::Parse git hash"
+          git_hash="$(git rev-parse --short HEAD)"
+          echo "git hash: ${git_hash}"
+          echo "::endgroup::"
+
+          echo "::group::Output version: ${version}"
+          version="${extracted_version}-${git_hash}"
+          echo "version: ${version}"
+          echo "::set-output name=version::$version"
+          echo "::endgroup::"
