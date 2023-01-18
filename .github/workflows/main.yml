@@ -1,5 +1,6 @@
 name: Build and push release targets
 on:
+  workflow_dispatch:
   push:
     tags:
       - yongkan-dev-(backend|analyticsdash)-v*
