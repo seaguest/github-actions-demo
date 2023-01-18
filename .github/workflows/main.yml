@@ -2,7 +2,7 @@ name: Build and push release targets
 on:
   push:
     tags:
-      - yongkan-dev-backend|analyticsdash-v*
+      - 'yongkan-dev-backend\|analyticsdash-v*'
 
 jobs:
   set_version:
