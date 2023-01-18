@@ -1,6 +1,8 @@
 name: Build and push release targets
 on:
   push:
+    tags:
+      - yongkan-dev-backend-v*
 
 jobs:
   set_version:
