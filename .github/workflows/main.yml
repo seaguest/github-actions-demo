@@ -1,17 +1,21 @@
 name: Build and push release targets
 on:
   push:
-    tags:
-      - 'yongkan-dev-\(backend\|analyticsdash\)-v.*'
 
 jobs:
   set_version:
-    name: Extract and set version
+    if: contains(${{ github.event.head_commit.message }}, 'dev') != true
+    name: Build and stage (${{ matrix.application }}) application container images
     runs-on: ubuntu-latest
     outputs:
       release_version: "${{ steps.set_release_version.outputs.version }}"
       service_group: "${{ steps.set_release_version.outputs.service_group }}"
       tag: "${{ steps.set_release_version.outputs.tag }}"
+
+    strategy:
+      matrix:
+        application: [moduleA, moduleB]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -20,6 +24,8 @@ jobs:
         run: |
           set -eo pipefail
           
+          echo "commit message: ${{ github.event.head_commit.message }}"
+
           echo "::group::Output tag"
           tag="${GITHUB_REF#refs/*/}"
           echo "tag: ${tag}"
