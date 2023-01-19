@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Create an aws profile
+    - name: test
       run: |
         echo "xxxxxxxxx"
         echo ${{ inputs.apps }}
 
     - name: Deploy to ${{ inputs.workspace }}
-      run: .ci/deploy.sh ${{ inputs.release_version }} ${{ inputs.workspace }} ${{ inputs.deployment_group }} ${{ inputs.apps }}
+      run: .ci/deploy.sh empty_version ${{ inputs.workspace }} empty_group ${{fromJson(inputs.apps)}}

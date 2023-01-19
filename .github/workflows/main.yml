@@ -10,11 +10,7 @@ jobs:
     steps:
       - id: set_servicegroup_apps
         run: |
-          set -eo pipefail
-          apps="[]"
-
-
-          
+          set -eo pipefail          
           service_group="${{ needs.set_version.outputs.service_group }}"
           if [ $service_group = "backend" ]; then
             apps="[\"go/apps/rpc\",\"go/apps/grpc_gateway\",\"go/apps/mapper_worker\",\"go/apps/delivery_worker\",\"go/apps/cron_worker\"]"
