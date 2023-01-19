@@ -29,6 +29,10 @@ jobs:
       run: |
         echo "xxxxxxxxx"
         echo ${{ inputs.apps }}
+        pwd
+        ls -la
+        ls -la .ci
+
 
     - name: Deploy to ${{ inputs.workspace }}
       run: .ci/deploy.sh empty_version ${{ inputs.workspace }} empty_group ${{ join(fromJson(inputs.apps), ' ') }}
