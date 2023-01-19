@@ -31,4 +31,4 @@ jobs:
         echo ${{ inputs.apps }}
 
     - name: Deploy to ${{ inputs.workspace }}
-      run: .ci/deploy.sh empty_version ${{ inputs.workspace }} empty_group ${{fromJson(inputs.apps)}}
+      run: .ci/deploy.sh empty_version ${{ inputs.workspace }} empty_group ${{ join(fromJson(inputs.apps), ' ') }}
