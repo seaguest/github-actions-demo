@@ -1,20 +1,37 @@
 name: Build and push release targets
-on:
-  push:
+on: push
 
 jobs:
+  set_apps:
+    needs: set_version
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.set_servicegroup_apps.outputs.apps }}
+    steps:
+      - id: set_servicegroup_apps
+        run: |
+          set -eo pipefail
+          apps="[]"
+
+
+          
+          service_group="${{ needs.set_version.outputs.service_group }}"
+          if [ $service_group = "backend" ]; then
+            apps="[\"go/apps/rpc\",\"go/apps/grpc_gateway\",\"go/apps/mapper_worker\",\"go/apps/delivery_worker\",\"go/apps/cron_worker\"]"
+          elif [ $service_group = "analyticsdash" ]; then
+            apps="[\"python/apps/analyticsdash\"]"
+          else
+            exit 1
+          fi
+          echo "::set-output name=apps::$apps"
+
   set_version:
-    if: contains(${{ github.event.head_commit.message }}, 'dev') != true
-    name: Build and stage (${{ matrix.application }}) application container images
+    name: ser version
     runs-on: ubuntu-latest
     outputs:
       release_version: "${{ steps.set_release_version.outputs.version }}"
       service_group: "${{ steps.set_release_version.outputs.service_group }}"
       tag: "${{ steps.set_release_version.outputs.tag }}"
-
-    strategy:
-      matrix:
-        application: [moduleA, moduleB]
 
     steps:
       - name: Checkout
@@ -22,34 +39,37 @@ jobs:
       - name: Set release env
         id: set_release_version
         run: |
-          set -eo pipefail
-          
           echo "commit message: ${{ github.event.head_commit.message }}"
 
           echo "::group::Output tag"
           tag="${GITHUB_REF#refs/*/}"
           echo "tag: ${tag}"
           echo "::set-output name=tag::$tag"
+          echo "::set-output name=service_group::analyticsdash"
           echo "::endgroup::"
-          
-          echo "::group::Trying to extract version from tag '${tag}'"
-          service_group="$(echo ${tag} | sed -n "s/^.*-\w*-\(\w*\)-v.*$/\1/p")"
-          echo "extracted service_group: ${service_group}"
-          extracted_version="$(echo ${tag} | grep --perl-regexp '(v\d+\.\d+\.\d+.*)' -o)"
-          echo "extracted version: ${extracted_version}"
-          echo "::endgroup::"
-          
-          echo "::group::Parse git hash"
-          git_hash="$(git rev-parse --short HEAD)"
-          echo "git hash: ${git_hash}"
-          echo "::endgroup::"
-          
-          echo "::group::Output service group: ${service_group}"
-          echo "::set-output name=service_group::$service_group"
-          echo "::endgroup::"
-          
-          echo "::group::Output version: ${version}"
-          version="${extracted_version}-${git_hash}"
-          echo "version: ${version}"
-          echo "::set-output name=version::$version"
-          echo "::endgroup::"
+
+  build:
+    needs: set_apps
+    name: Build and stage (${{ matrix.apps }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix: 
+        apps: ${{fromJson(needs.set_apps.outputs.apps)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set release env
+        id: set_release_version
+        run: |
+          echo "build...."
+
+  deploy-dev:
+    needs: [set_version, set_apps, build]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      workspace: dev
+      release_version: ${{ needs.set_version.outputs.release_version }}
+      deployment_group: ${{ needs.set_version.outputs.deployment_group }}
+      apps: ${{ needs.set_apps.outputs.apps }}
