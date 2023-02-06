@@ -25,6 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
     - name: test
       run: |
         echo "xxxxxxxxx"
@@ -35,4 +38,4 @@ jobs:
 
 
     - name: Deploy to ${{ inputs.workspace }}
-      run: .ci/deploy.sh empty_version ${{ inputs.workspace }} empty_group ${{ join(fromJson(inputs.apps), ' ') }}
+      run: .ci/deploy.sh empty_version ${{ inputs.workspace }} ${{ inputs.deployment_group }} ${{ join(fromJson(inputs.apps), ' ') }}

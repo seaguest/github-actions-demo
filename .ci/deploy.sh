@@ -1,9 +1,9 @@
 #!/bin/bash
-ecgo "$@"
+echo "$@"
 
-local workspace="$1"
-local version="$2"
-local deployment_group="$3"
+workspace="$1"
+version="$2"
+deployment_group="$3"
 
 echo "----start-----"
 echo $workspace
@@ -11,8 +11,8 @@ echo $version
 echo $deployment_group
 echo "----end-----"
 
-shift
+shift 3
 for app_path in "$@";
 do
-	echo "Deploying $app_path"
+	echo "app:$app_path"
 done
