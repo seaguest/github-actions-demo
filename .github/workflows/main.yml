@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - promote-dev-v*
+      - promote-prod-v*
 
 jobs:
   set_version:
